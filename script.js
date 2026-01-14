@@ -33,6 +33,8 @@ function showTab(name){
   if (name === "trainer") renderList();
   if (name === "progress") { updateProgressUI(); drawChart(); }
   if (name !== "trainer") stopTimer();
+
+  if (name === "minigame") mgRefreshBest();
 }
 
 navLinks.forEach(a => {
@@ -91,6 +93,7 @@ resetAllBtn.addEventListener("click", () => {
   updateProgressUI();
   drawChart();
   resetLearnUI();
+  mgResetUI("Bitte zuerst Vokabeln anlegen (im Vokabeltrainer).");
 });
 
 function renderList(){
@@ -127,6 +130,7 @@ function renderList(){
       saveVocabs();
       renderList();
       updateProgressUI();
+      mgResetUI("Vokabel gelöscht. Mini-Game bitte neu starten.");
     });
 
     vocabListEl.appendChild(row);
@@ -312,7 +316,253 @@ function drawChart(){
   });
 }
 
+// ========= MINI-GAME: Vocabulary Memory Match =========
+const mgLevelEl = document.getElementById("mgLevel");
+const mgStartBtn = document.getElementById("mgStart");
+const mgPlayAgainBtn = document.getElementById("mgPlayAgain");
+const mgBoard = document.getElementById("mgBoard");
+const mgInfo = document.getElementById("mgInfo");
+const mgTimeEl = document.getElementById("mgTime");
+const mgMovesEl = document.getElementById("mgMoves");
+const mgMatchesEl = document.getElementById("mgMatches");
+const mgBestEl = document.getElementById("mgBest");
+const mgWin = document.getElementById("mgWin");
+const mgWinText = document.getElementById("mgWinText");
+
+const LS_MG_BEST = "minigame_best_v1";
+
+let mgCards = [];
+let mgFirst = null;
+let mgSecond = null;
+let mgLock = false;
+
+let mgMoves = 0;
+let mgMatches = 0;
+let mgTimer = null;
+let mgSeconds = 0;
+let mgRunning = false;
+
+mgStartBtn.addEventListener("click", mgStart);
+mgPlayAgainBtn.addEventListener("click", mgStart);
+
+function mgResetUI(message=""){
+  mgBoard.innerHTML = "";
+  mgInfo.textContent = message;
+  mgWin.style.display = "none";
+  mgMoves = 0;
+  mgMatches = 0;
+  mgSeconds = 0;
+  mgRunning = false;
+  mgFirst = null;
+  mgSecond = null;
+  mgLock = false;
+  mgMovesEl.textContent = "0";
+  mgMatchesEl.textContent = "0";
+  mgTimeEl.textContent = "00:00";
+  mgStopTimer();
+  mgRefreshBest();
+}
+
+function mgStart(){
+  vocabs = loadVocabs(); // refresh latest vocabs
+  if (!vocabs.length){
+    mgResetUI("Bitte zuerst Vokabeln anlegen (im Vokabeltrainer).");
+    return;
+  }
+
+  mgWin.style.display = "none";
+  mgInfo.textContent = "Merke dir die Karten und finde die Paare!";
+  mgMoves = 0;
+  mgMatches = 0;
+  mgSeconds = 0;
+  mgMovesEl.textContent = "0";
+  mgMatchesEl.textContent = "0";
+  mgTimeEl.textContent = "00:00";
+  mgStopTimer();
+
+  mgFirst = null;
+  mgSecond = null;
+  mgLock = false;
+  mgRunning = true;
+
+  const pairs = Number(mgLevelEl.value); // 6/8/10
+  const pool = shuffle([...vocabs]).slice(0, Math.min(pairs, vocabs.length));
+
+  // Build cards: one "q" card + one "a" card per vocab
+  mgCards = [];
+  pool.forEach(v => {
+    mgCards.push({ id: randomId(), pairId: v.id, type: "Wort", text: v.q, matched:false });
+    mgCards.push({ id: randomId(), pairId: v.id, type: "Übersetzung", text: v.a, matched:false });
+  });
+
+  mgCards = shuffle(mgCards);
+
+  mgRenderBoard(mgCards);
+
+  // Quick "preview" (2 seconds), then hide
+  setTimeout(() => {
+    document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
+    mgStartTimer();
+  }, 900);
+}
+
+function mgRenderBoard(cards){
+  mgBoard.innerHTML = "";
+  cards.forEach(card => {
+    const el = document.createElement("div");
+    el.className = "card";
+    el.dataset.id = card.id;
+
+    el.innerHTML = `
+      <div class="cardInner">
+        <div class="cardFace">${escapeHtml(card.text)}</div>
+        <div class="cardType">${escapeHtml(card.type)}</div>
+      </div>
+    `;
+
+    // start visible (preview), will hide after timeout
+    el.addEventListener("click", () => mgFlip(card.id));
+
+    mgBoard.appendChild(el);
+  });
+}
+
+function mgFlip(cardId){
+  if (!mgRunning) return;
+  if (mgLock) return;
+
+  const card = mgCards.find(c => c.id === cardId);
+  if (!card || card.matched) return;
+
+  const el = mgGetCardEl(cardId);
+  if (!el || !el.classList.contains("hidden")) {
+    // already visible
+    return;
+  }
+
+  // reveal
+  el.classList.remove("hidden");
+
+  if (!mgFirst){
+    mgFirst = card;
+    return;
+  }
+
+  if (mgFirst.id === card.id) return;
+
+  mgSecond = card;
+  mgMoves++;
+  mgMovesEl.textContent = String(mgMoves);
+
+  // check match: same pairId but different type
+  const isMatch = (mgFirst.pairId === mgSecond.pairId) && (mgFirst.type !== mgSecond.type);
+
+  if (isMatch){
+    card.matched = true;
+    mgFirst.matched = true;
+
+    mgGetCardEl(mgFirst.id)?.classList.add("matched");
+    mgGetCardEl(mgSecond.id)?.classList.add("matched");
+
+    mgMatches++;
+    mgMatchesEl.textContent = String(mgMatches);
+
+    mgFirst = null;
+    mgSecond = null;
+
+    if (mgMatches === mgCards.length / 2){
+      mgWinGame();
+    }
+  } else {
+    mgLock = true;
+    mgGetCardEl(mgFirst.id)?.classList.add("wrongFlash");
+    mgGetCardEl(mgSecond.id)?.classList.add("wrongFlash");
+
+    setTimeout(() => {
+      mgGetCardEl(mgFirst.id)?.classList.add("hidden");
+      mgGetCardEl(mgSecond.id)?.classList.add("hidden");
+      mgFirst = null;
+      mgSecond = null;
+      mgLock = false;
+    }, 800);
+  }
+}
+
+function mgWinGame(){
+  mgRunning = false;
+  mgStopTimer();
+
+  const timeStr = mgFormatTime(mgSeconds);
+  mgWin.style.display = "block";
+  mgWinText.textContent = `Zeit: ${timeStr} | Züge: ${mgMoves}`;
+
+  // Best time logic (per level)
+  const level = Number(mgLevelEl.value);
+  const best = mgGetBest(level);
+  if (best == null || mgSeconds < best){
+    mgSetBest(level, mgSeconds);
+    mgRefreshBest();
+    mgInfo.textContent = "🏆 Neue Bestzeit!";
+  } else {
+    mgInfo.textContent = "✅ Stark! Versuche deine Bestzeit zu schlagen.";
+  }
+}
+
+function mgGetCardEl(id){
+  return mgBoard.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
+}
+
+function mgStartTimer(){
+  mgStopTimer();
+  mgTimer = setInterval(() => {
+    mgSeconds++;
+    mgTimeEl.textContent = mgFormatTime(mgSeconds);
+  }, 1000);
+}
+
+function mgStopTimer(){
+  if (mgTimer){ clearInterval(mgTimer); mgTimer = null; }
+}
+
+function mgFormatTime(sec){
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+
+function mgGetBest(level){
+  try{
+    const obj = JSON.parse(localStorage.getItem(LS_MG_BEST) || "{}");
+    return (typeof obj[level] === "number") ? obj[level] : null;
+  } catch {
+    return null;
+  }
+}
+
+function mgSetBest(level, sec){
+  const obj = (() => {
+    try { return JSON.parse(localStorage.getItem(LS_MG_BEST) || "{}"); }
+    catch { return {}; }
+  })();
+  obj[level] = sec;
+  localStorage.setItem(LS_MG_BEST, JSON.stringify(obj));
+}
+
+function mgRefreshBest(){
+  const level = Number(mgLevelEl.value || 8);
+  const best = mgGetBest(level);
+  mgBestEl.textContent = best == null ? "—" : mgFormatTime(best);
+}
+
 // ========= Helpers =========
+function shuffle(arr){
+  for (let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function weightedRandomByDifficulty(arr){
   const bag = [];
   for (const v of arr){
@@ -361,4 +611,5 @@ function lastNDays(n){
 renderList();
 updateProgressUI();
 drawChart();
+mgResetUI("Starte das Spiel, nachdem du Vokabeln angelegt hast.");
 showTab("home");
