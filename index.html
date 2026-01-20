@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lernübersicht</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <!-- HEADER (unchanged) -->
+  <!-- HEADER (unchanged look) -->
   <header class="header">
     <div class="logo">
       <span>Lernübersicht</span>
@@ -16,7 +16,7 @@
 
     <nav class="nav">
       <a href="#" class="active" data-tab="home">Home</a>
-      <a href="learnPlan.html" data-tab="plan">LearnPlan</a>
+      <a href="#" data-tab="plan">LearnPlan</a>
       <a href="#" data-tab="trainer">Vokabeltrainer</a>
       <a href="#" data-tab="progress">Learnfortschritt</a>
       <a href="#" data-tab="minigame">Mini-Game</a>
@@ -33,9 +33,11 @@
     <!-- HOME (EMPTY) -->
     <section id="tab-home"></section>
 
-    <!-- placeholders (not required) -->
-    <section id="tab-plan" style="display:none;"></section>
-    <section id="tab-minigame" style="display:none;"></section>
+    <!-- PLAN (optional placeholder) -->
+    <section id="tab-plan" style="display:none;">
+      <h1 style="margin:16px 0;">LearnPlan</h1>
+      <p style="color:#334155;">(Optional: hier kannst du später deinen Lernplan einbauen.)</p>
+    </section>
 
     <!-- VOKABELTRAINER -->
     <section id="tab-trainer" style="display:none;">
@@ -141,6 +143,50 @@
           <canvas id="chart" width="520" height="260"
                   style="width:100%; border:1px solid #cbd5f5; border-radius:10px;"></canvas>
           <button id="refreshChart" style="margin-top:10px;">Aktualisieren</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MINI-GAME -->
+    <section id="tab-minigame" style="display:none;">
+      <h1 style="margin:16px 0;">Mini-Game 🎮</h1>
+
+      <div class="gameWrap">
+        <div class="gameHeader">
+          <div class="gameTitle">
+            <div class="badge">Memory Match</div>
+            <div class="subtitle">Finde die Paare (Wort ↔ Übersetzung). Zeit läuft!</div>
+          </div>
+
+          <div class="gameControls">
+            <label class="gameSelect">
+              Schwierigkeit
+              <select id="mgLevel">
+                <option value="6">Leicht (6 Paare)</option>
+                <option value="8" selected>Mittel (8 Paare)</option>
+                <option value="10">Schwer (10 Paare)</option>
+              </select>
+            </label>
+
+            <button id="mgStart">Start / Neustart</button>
+          </div>
+        </div>
+
+        <div class="gameStats">
+          <div class="statBox"><span>Zeit</span><b id="mgTime">00:00</b></div>
+          <div class="statBox"><span>Züge</span><b id="mgMoves">0</b></div>
+          <div class="statBox"><span>Treffer</span><b id="mgMatches">0</b></div>
+          <div class="statBox"><span>Bestzeit</span><b id="mgBest">—</b></div>
+        </div>
+
+        <div id="mgInfo" class="gameInfo"></div>
+
+        <div id="mgBoard" class="board"></div>
+
+        <div id="mgWin" class="winBox" style="display:none;">
+          <h2>✅ Gewonnen!</h2>
+          <p id="mgWinText">—</p>
+          <button id="mgPlayAgain">Nochmal spielen</button>
         </div>
       </div>
     </section>
