@@ -1,0 +1,78 @@
+*{
+    padding: 0;
+    margin: 0;
+}
+
+.header{
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: linear-gradient(90deg, #1e1e293b, #334155);
+    color: #ffffff;
+}
+
+.logo{
+    display: flex;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    gap: 8px;
+}
+
+.nav{
+    display: flex;
+    gap: 24px;
+}
+
+.nav a{
+    color: #cbd5cb;
+    text-decoration: none;
+    font-weight:500;
+    padding-bottom: 4px;
+    transition: color 0.3s;
+    font-size: 20px;
+}
+
+.nav a:hover{
+    color: #ffffff;
+    border-bottom: 2px solid #ffffff;
+}
+
+.nav a.active{
+    color: #ffffff;
+    border-bottom: 2px solid #38bdf8;
+}
+
+.user{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user img{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #38bdf8;
+}
+
+.main {
+    padding: 20px;
+    max-width:1200px;
+    margin: auto;
+}
+
+.add-task, .progress, .daily-overview, .calendar-view, .all-tasks{
+    margin-bottom: 30px;
+    padding:20px;
+    border: 1px solid #ddd;
+    border-radius:8px;
+    background-color: #f9f9f9;
+}
+
+#task-form {
+    display:flex;
+    flex-direction: column;
+    gap: 10px
+}
