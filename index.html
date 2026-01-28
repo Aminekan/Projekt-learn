@@ -1,35 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn</title>
-   <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learn</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <!--Header-->
-    <header class="header">
-        <div class="logo">
-          <span>Lernübersicht</span>
-        </div>
-        
-        <nav class="nav">
-          <a href="#">Home</a>
-          <a href="#">LearnPlan</a>
-          <a href="#">Vokabeltrainer</a>
-          <a href="#">Learnfortschritt</a>
-          <a href="#">Mini-Game</a>
-        </nav>
-        
-        <div class="user">
-          <img src="man.png" alt="User Avatar">
-          <span>Amine</span>
-        </div>
-    
-    
-      </header>
+  <!--Header-->
+  <header class="header">
+    <div class="logo">
+      <span>Lernübersicht</span>
+    </div>
 
-      <!--Hauptseite-->
+    <nav class="nav">
+      <a href="#">Home</a>
+      <a href="#">LearnPlan</a>
+      <a href="#">Vokabeltrainer</a>
+      <a href="#">Learnfortschritt</a>
+      <a href="#">Mini-Game</a>
+    </nav>
+
+    <div class="user">
+      <img src="man.png" alt="User Avatar">
+      <span>Amine</span>
+    </div>
+
+
+  </header>
+
+  <!--Hauptseite-->
+  <main>
+
+    <!--Section1-->
+    <section>
+      <div class="center">
+        <img src="pexels-julia-m-cameron-4145153.jpg" alt="foto">
+        <div class="textcenter">
+          <p>
+            Lernplan ist eine Web-Anwendung, die Schülern und Studenten dabei unterstützt,
+            ihre Lernzeit zu organisieren, Vokabeln zu trainieren und mit Mini-Spielen
+            motiviert zu lernen.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!--Section2-->
+    <section>
+      <div class="containersection1">
+        <div class="content">
+          <h2>Was bietet unsere Website?</h2>
+          <ul>
+            <li>
+                <strong>Lernplan:</strong> Ermöglicht es den Nutzern, ihre Lernzeiten
+                zu planen, Aufgaben zu organisieren und den Überblick über ihre Ziele
+                zu behalten.
+            </li>
+            <li>
+                <strong>Vokabeltrainer:</strong> Hilft beim Lernen und Wiederholen von
+                Vokabeln durch gezielte Übungen und regelmäßiges Training.
+            </li>
+            <li>
+                <strong>Mini-Spiele:</strong> Kleine Lernspiele, die das Lernen
+                spielerischer gestalten und die Motivation erhöhen.
+            </li>
+        </ul>
+        </div>
+        <div class="image">
+          <img src="pexels-ron-lach-9785593.jpg" alt="foto1" width="200" height="400">
+        </div>
+      </div>
+      
+      
+    </section>
+
+    <!--Section3-->
+    <section>
+      <div class="containersection1" style="line-height: 1.6;">
+          <div class="image">
+          <img src="pexels-ron-lach-9786304.jpg" alt="foto2">
+          </div>
+
+          <div class="content" style="font-size: 20px;">
+            <h2>Ziel des Projekts</h2>
+            <p>
+                Ziel unseres Projekts ist es, Lernenden eine einfache, übersichtliche und
+                interaktive Plattform zu bieten, mit der sie effizienter lernen und motiviert bleiben.
+            </p>
+            <p>
+                Die Website kombiniert verschiedene Lernmethoden: Nutzer können ihre Lernzeit
+                mit dem Lernplan organisieren, neue Vokabeln üben und spielerisch mit
+                Mini-Spielen Wissen festigen. So wird das Lernen abwechslungsreicher und macht
+                mehr Spaß.
+            </p>
+            <p>
+                Zusätzlich möchten wir den Nutzern helfen, ihre Lernfortschritte zu verfolgen,
+                Ziele zu setzen und Motivation zu steigern. Lernplan fördert eigenständiges
+                Lernen, Struktur und regelmäßiges Üben, damit Schüler und Studenten ihre
+                Lernziele leichter erreichen können.
+            </p>
+          </div>
+      </div>
+    </section>
+
+    <!--section(Formular)-->
+    <section >
+      <div class="form-section">
+      <h2>Kontaktformular</h2>
+
+      <form id="Kontaktformular">
+          <label for="name">Name</label>
+          <input type="text" id="name" placeholder="Dein Name">
+  
+          <label for="email">E-Mail</label>
+          <input type="email" id="email" placeholder="Deine E-Mail">
+  
+          <label for="message">Nachricht</label>
+          <textarea id="message" placeholder="Deine Nachricht"></textarea>
+  
+          <button type="submit">Senden</button>
+          <p id="messag" style="margin-top: 10px;"></p>
+      </form>
+    </div>
+    </section>
+
+<footer>
+    <p>Projektarbeit – Lernplan © 2026</p>
+</footer>
+   
+
+<script src="script.js"></script>
+  </main>
 </body>
+
 </html>
