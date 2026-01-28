@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head> 
+        <meta charset="UTF-8">
+        <meta name="viewport" 
+        content = "width=deveice-width, initial-scale=1.0">
+        <title>LearnPlan</title>
+        <link rel="stylesheet" href="learnPlan.css">
+    
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <span>Lernübersicht</span>
+            </div>
+            <nav class ="nav">
+                <a href="index.html">Home</a>
+                <a href="learnPlan.html" class="active">learnPlan</a>
+                <a href="#">Vokabeltrainer</a>
+                <a href="#">Learnfortschritt</a>
+                <a href="#">Mini-Game</a>
+            </nav>
+            <div class="user">
+                <img src="man.png" alt="User Avatar">
+            </div>
+        </header>
+        <main class="main">
+            <h1>Aufgaben Manager</h1>
+            <section class="add-task">
+              <h2>Neue Aufgabe hinzufügen</h2>  
+              <form id="task-form">
+                <input type="text" id="task-title" 
+                placeholder="AufgabenTitel" required>
+                <textarea id="task-desc" 
+                placeholder="Beschreibung"></textarea>
+                <input type="date" id="task-deadline" required>
+                <select id="Task-priority">
+                    <option value="low">Niedrig</option>
+                    <option value="medium">Mittel</option>
+                    <option value="high">Hoch</option>
+                </select>
+                <button type="submit">Hinzufügen</button>
+              </form>
+            </section>
+
+            <section class="progress">
+                <h2>Gesamtfortschritt</h2>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <p id="progress-text">0 von Aufgaben erledigt</p>
+            </section>
+
+            <section class="daily-overview">
+              <h2>Tagesübersicht</h2>
+              <ul id="daily-tasks"></ul>
+             </section>
+
+             <section class ="calendar-view">
+                <h2>Kalenderansicht</h2>
+                <div id="calendar"></div>
+             </section>
+
+             <section class ="all-tasks">
+                <h2>Alle Aufgaben</h2>
+                <ul id="task-list"></ul>
+             </section>
+
+
+
+        </main>
+    </body>
+</html>
