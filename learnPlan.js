@@ -69,4 +69,25 @@ function addTask(event) {
         document.getElementById('progress-text').innerText = `Fortschritt: ${completed} / ${total} Aufgaben erledigt`;
     }
 
+    function renderDailyOverview(){
+        const today = new Date().toISOString().split('T')[0];
+        const dailyTasks = tasks.filter(t => t.deadline === today);
+        const dailyList = document.getElementById('daily-tasks');
+        dailyList.innerHTML = '';
+        if (dailyTasks.length === 0){
+            dailyList.innerHTML = '<li>Keine Aufgaben für heute!</li>';
+        } else {
+            dailyTasks.forEach(task => {
+                const li = document.createElement('li');
+                li.innerText = task.title + (task.completed ? ' completed' : '');
+                li.innerHTML = `
+                <div class="task-details">
+                <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
+                <strong>${task.title}</strong> -${task.description} <br>
+                Priority: <span class="task-priority ${task.priority}</span>
+                </div> `;
+                dailyList.appendChild(li);
+            });
+
+
     
