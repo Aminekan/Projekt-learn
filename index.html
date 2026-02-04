@@ -1,329 +1,128 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="de">
 <head>
-<<<<<<< HEAD
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Learn</title>
-=======
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lernübersicht</title>
->>>>>>> 8e5c0837f9b4c54eacce1091a375b9a5505613d0
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Master - Mini-Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-<<<<<<< HEAD
-  <!--Header-->
-=======
-  <!-- HEADER (unchanged look) -->
->>>>>>> 8e5c0837f9b4c54eacce1091a375b9a5505613d0
-  <header class="header">
-    <div class="logo">
-      <span>Lernübersicht</span>
+    <div class="game-wrapper">
+        <div class="game-header-modern">
+            <div class="game-title-modern">
+                <div class="badge-modern">
+                    <i class="fas fa-brain"></i>
+                    <span>MEMORY MASTER</span>
+                </div>
+                <p class="subtitle-modern">Finde die Wortpaare und schlage deine Bestzeit!</p>
+            </div>
+            
+            <div class="game-controls-modern">
+                <div class="level-selector">
+                    <div class="level-label">
+                        <i class="fas fa-layer-group"></i> Schwierigkeit
+                    </div>
+                    <div class="level-buttons-modern">
+                        <button class="level-btn-modern active" data-level="6">
+                            <i class="fas fa-seedling"></i>
+                            <span>Leicht</span>
+                            <small>6 Paare</small>
+                        </button>
+                        <button class="level-btn-modern" data-level="8">
+                            <i class="fas fa-bolt"></i>
+                            <span>Mittel</span>
+                            <small>8 Paare</small>
+                        </button>
+                        <button class="level-btn-modern" data-level="10">
+                            <i class="fas fa-fire"></i>
+                            <span>Schwer</span>
+                            <small>10 Paare</small>
+                        </button>
+                    </div>
+                </div>
+                
+                <button id="mgStart" class="btn-game-start">
+                    <i class="fas fa-play-circle"></i>
+                    <span>SPIEL STARTEN</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="game-stats-modern">
+            <div class="stat-modern">
+                <div class="stat-icon-modern time">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content-modern">
+                    <span>ZEIT</span>
+                    <b id="mgTime" class="stat-value-modern">00:00</b>
+                </div>
+            </div>
+            
+            <div class="stat-modern">
+                <div class="stat-icon-modern moves">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="stat-content-modern">
+                    <span>ZÜGE</span>
+                    <b id="mgMoves" class="stat-value-modern">0</b>
+                </div>
+            </div>
+            
+            <div class="stat-modern">
+                <div class="stat-icon-modern matches">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-content-modern">
+                    <span>TREFFER</span>
+                    <b id="mgMatches" class="stat-value-modern">0</b>
+                </div>
+            </div>
+            
+            <div class="stat-modern">
+                <div class="stat-icon-modern best">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-content-modern">
+                    <span>BESTZEIT</span>
+                    <b id="mgBest" class="stat-value-modern">—</b>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-container-modern">
+            <div class="progress-bar-modern" id="mgProgress"></div>
+        </div>
+
+        <div id="mgInfo" class="game-info-modern">
+            <i class="fas fa-lightbulb"></i>
+            <span>Wähle ein Level und starte das Spiel!</span>
+        </div>
+
+        <div id="mgBoard" class="board-modern">
+        </div>
+
+        <div id="mgWin" class="win-box-modern" style="display:none;">
+            <div class="win-content">
+                <div class="win-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h2>HERZLICHEN GLÜCKWUNSCH!</h2>
+                <p id="mgWinText" class="win-text">—</p>
+                <button id="mgPlayAgain" class="btn-play-again">
+                    <i class="fas fa-redo"></i>
+                    <span>NOCHMAL SPIELEN</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="game-tips">
+            <i class="fas fa-lightbulb"></i>
+            <p><strong>Tipp:</strong> Merke dir die Positionen der Karten - jede Vokabel hat ein passendes Übersetzungs-Paar!</p>
+        </div>
     </div>
 
-    <nav class="nav">
-<<<<<<< HEAD
-      <a href="#">Home</a>
-      <a href="#">LearnPlan</a>
-      <a href="#">Vokabeltrainer</a>
-      <a href="#">Learnfortschritt</a>
-      <a href="#">Mini-Game</a>
-=======
-      <a href="#" class="active" data-tab="home">Home</a>
-      <a href="#" data-tab="plan">LearnPlan</a>
-      <a href="#" data-tab="trainer">Vokabeltrainer</a>
-      <a href="#" data-tab="progress">Learnfortschritt</a>
-      <a href="#" data-tab="minigame">Mini-Game</a>
->>>>>>> 8e5c0837f9b4c54eacce1091a375b9a5505613d0
-    </nav>
-
-    <div class="user">
-      <img src="man.png" alt="User Avatar">
-      <span>Amine</span>
-    </div>
-<<<<<<< HEAD
-
-
-  </header>
-
-  <!--Hauptseite-->
-  <main>
-
-    <!--Section1-->
-    <section>
-      <div class="center">
-        <img src="pexels-julia-m-cameron-4145153.jpg" alt="foto">
-        <div class="textcenter">
-          <p>
-            Lernplan ist eine Web-Anwendung, die Schülern und Studenten dabei unterstützt,
-            ihre Lernzeit zu organisieren, Vokabeln zu trainieren und mit Mini-Spielen
-            motiviert zu lernen.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!--Section2-->
-    <section>
-      <div class="containersection1">
-        <div class="content">
-          <h2>Was bietet unsere Website?</h2>
-          <ul>
-            <li>
-                <strong>Lernplan:</strong> Ermöglicht es den Nutzern, ihre Lernzeiten
-                zu planen, Aufgaben zu organisieren und den Überblick über ihre Ziele
-                zu behalten.
-            </li>
-            <li>
-                <strong>Vokabeltrainer:</strong> Hilft beim Lernen und Wiederholen von
-                Vokabeln durch gezielte Übungen und regelmäßiges Training.
-            </li>
-            <li>
-                <strong>Mini-Spiele:</strong> Kleine Lernspiele, die das Lernen
-                spielerischer gestalten und die Motivation erhöhen.
-            </li>
-        </ul>
-        </div>
-        <div class="image">
-          <img src="pexels-ron-lach-9785593.jpg" alt="foto1" width="200" height="400">
-        </div>
-      </div>
-      
-      
-    </section>
-
-    <!--Section3-->
-    <section>
-      <div class="containersection1" style="line-height: 1.6;">
-          <div class="image">
-          <img src="pexels-ron-lach-9786304.jpg" alt="foto2">
-          </div>
-
-          <div class="content" style="font-size: 20px;">
-            <h2>Ziel des Projekts</h2>
-            <p>
-                Ziel unseres Projekts ist es, Lernenden eine einfache, übersichtliche und
-                interaktive Plattform zu bieten, mit der sie effizienter lernen und motiviert bleiben.
-            </p>
-            <p>
-                Die Website kombiniert verschiedene Lernmethoden: Nutzer können ihre Lernzeit
-                mit dem Lernplan organisieren, neue Vokabeln üben und spielerisch mit
-                Mini-Spielen Wissen festigen. So wird das Lernen abwechslungsreicher und macht
-                mehr Spaß.
-            </p>
-            <p>
-                Zusätzlich möchten wir den Nutzern helfen, ihre Lernfortschritte zu verfolgen,
-                Ziele zu setzen und Motivation zu steigern. Lernplan fördert eigenständiges
-                Lernen, Struktur und regelmäßiges Üben, damit Schüler und Studenten ihre
-                Lernziele leichter erreichen können.
-            </p>
-          </div>
-      </div>
-    </section>
-
-    <!--section(Formular)-->
-    <section >
-      <div class="form-section">
-      <h2>Kontaktformular</h2>
-
-      <form id="Kontaktformular">
-          <label for="name">Name</label>
-          <input type="text" id="name" placeholder="Dein Name">
-  
-          <label for="email">E-Mail</label>
-          <input type="email" id="email" placeholder="Deine E-Mail">
-  
-          <label for="message">Nachricht</label>
-          <textarea id="message" placeholder="Deine Nachricht"></textarea>
-  
-          <button type="submit">Senden</button>
-          <p id="messag" style="margin-top: 10px;"></p>
-      </form>
-    </div>
-    </section>
-
-<footer>
-    <p>Projektarbeit – Lernplan © 2026</p>
-</footer>
-   
-
-<script src="script.js"></script>
-  </main>
-</body>
-
-</html>
-=======
-  </header>
-
-  <!-- CONTENT AREA (home is empty) -->
-  <main style="padding: 24px 32px; font-family: Arial, sans-serif;">
-    <!-- HOME (EMPTY) -->
-    <section id="tab-home"></section>
-
-    <!-- PLAN (optional placeholder) -->
-    <section id="tab-plan" style="display:none;">
-      <h1 style="margin:16px 0;">LearnPlan</h1>
-      <p style="color:#334155;">(Optional: hier kannst du später deinen Lernplan einbauen.)</p>
-    </section>
-
-    <!-- VOKABELTRAINER -->
-    <section id="tab-trainer" style="display:none;">
-      <h1 style="margin:16px 0;">Vokabeltrainer</h1>
-
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-        <!-- Add form -->
-        <div style="border:1px solid #cbd5f5; border-radius:10px; padding:14px;">
-          <h3>Vokabeln anlegen</h3>
-
-          <form id="vocabForm" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-            <label>Wort (Sprache 1)</label>
-            <input id="q" required>
-
-            <label>Übersetzung (Sprache 2)</label>
-            <input id="a" required>
-
-            <label>Schwierigkeit</label>
-            <select id="difficulty">
-              <option value="1">Leicht</option>
-              <option value="2" selected>Mittel</option>
-              <option value="3">Schwer</option>
-            </select>
-
-            <button type="submit">Speichern</button>
-            <button type="button" id="resetAll">Alles löschen</button>
-          </form>
-
-          <p style="margin-top:10px; color:#334155;">
-            Spaced Repetition: Box-System (1→2→3→4→5). Bei “richtig” später, bei “falsch” früher.
-          </p>
-        </div>
-
-        <!-- List -->
-        <div style="border:1px solid #cbd5f5; border-radius:10px; padding:14px;">
-          <h3>Deine Vokabeln</h3>
-          <input id="search" placeholder="Suchen..." style="margin-top:10px; width:100%; padding:8px;">
-          <div id="vocabList" style="margin-top:12px; display:flex; flex-direction:column; gap:10px; max-height:360px; overflow:auto;"></div>
-          <div id="vocabCount" style="margin-top:10px; color:#334155;"></div>
-        </div>
-      </div>
-
-      <!-- Lernmodus -->
-      <div style="margin-top:18px; border:1px solid #cbd5f5; border-radius:10px; padding:14px;">
-        <h3>Lernmodus (Abfrage)</h3>
-
-        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:10px;">
-          <button id="startLearn">Start</button>
-
-          <label style="display:flex; align-items:center; gap:8px;">
-            <input type="checkbox" id="examMode">
-            Prüfungsmodus
-          </label>
-
-          <select id="examTime">
-            <option value="0" selected>Kein Zeitlimit</option>
-            <option value="10">10s</option>
-            <option value="20">20s</option>
-            <option value="30">30s</option>
-          </select>
-
-          <span id="timerText" style="color:#334155;">⏱️ —</span>
-        </div>
-
-        <div id="learnBox" style="display:none; margin-top:14px;">
-          <div id="learnMeta" style="color:#334155; margin-bottom:10px;">—</div>
-
-          <div id="questionText" style="font-size:26px; font-weight:bold; margin:10px 0;">—</div>
-
-          <button id="showAnswer">Antwort anzeigen</button>
-          <div id="answerText" style="display:none; margin-top:10px; padding:10px; border:1px dashed #38bdf8; border-radius:10px;">—</div>
-
-          <div id="rateButtons" style="display:none; margin-top:12px;">
-            <button id="markCorrect">Richtig</button>
-            <button id="markWrong">Falsch</button>
-            <button id="skip">Überspringen</button>
-          </div>
-
-          <div id="learnInfo" style="margin-top:10px; color:#334155;"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- LEARNFORTSCHRITT -->
-    <section id="tab-progress" style="display:none;">
-      <h1 style="margin:16px 0;">Learnfortschritt</h1>
-
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-        <!-- Stats -->
-        <div style="border:1px solid #cbd5f5; border-radius:10px; padding:14px;">
-          <h3>Statistik</h3>
-          <p><b>Vokabeln:</b> <span id="statTotal">0</span></p>
-          <p><b>Antworten:</b> <span id="statAnswered">0</span></p>
-          <p><b>Richtig:</b> <span id="statCorrect">0</span></p>
-          <p><b>Falsch:</b> <span id="statWrong">0</span></p>
-          <p><b>Quote:</b> <span id="statAccuracy">0%</span></p>
-          <p><b>Fällig (Spaced):</b> <span id="statDue">0</span></p>
-        </div>
-
-        <!-- Chart -->
-        <div style="border:1px solid #cbd5f5; border-radius:10px; padding:14px;">
-          <h3>Diagramm (letzte 7 Tage)</h3>
-          <canvas id="chart" width="520" height="260"
-                  style="width:100%; border:1px solid #cbd5f5; border-radius:10px;"></canvas>
-          <button id="refreshChart" style="margin-top:10px;">Aktualisieren</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- MINI-GAME -->
-    <section id="tab-minigame" style="display:none;">
-      <h1 style="margin:16px 0;">Mini-Game 🎮</h1>
-
-      <div class="gameWrap">
-        <div class="gameHeader">
-          <div class="gameTitle">
-            <div class="badge">Memory Match</div>
-            <div class="subtitle">Finde die Paare (Wort ↔ Übersetzung). Zeit läuft!</div>
-          </div>
-
-          <div class="gameControls">
-            <label class="gameSelect">
-              Schwierigkeit
-              <select id="mgLevel">
-                <option value="6">Leicht (6 Paare)</option>
-                <option value="8" selected>Mittel (8 Paare)</option>
-                <option value="10">Schwer (10 Paare)</option>
-              </select>
-            </label>
-
-            <button id="mgStart">Start / Neustart</button>
-          </div>
-        </div>
-
-        <div class="gameStats">
-          <div class="statBox"><span>Zeit</span><b id="mgTime">00:00</b></div>
-          <div class="statBox"><span>Züge</span><b id="mgMoves">0</b></div>
-          <div class="statBox"><span>Treffer</span><b id="mgMatches">0</b></div>
-          <div class="statBox"><span>Bestzeit</span><b id="mgBest">—</b></div>
-        </div>
-
-        <div id="mgInfo" class="gameInfo"></div>
-
-        <div id="mgBoard" class="board"></div>
-
-        <div id="mgWin" class="winBox" style="display:none;">
-          <h2>✅ Gewonnen!</h2>
-          <p id="mgWinText">—</p>
-          <button id="mgPlayAgain">Nochmal spielen</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script src="script.js"></script>
+    <script src="mini-game.js"></script>
 </body>
 </html>
->>>>>>> 8e5c0837f9b4c54eacce1091a375b9a5505613d0
