@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vokabeltrainer</title>
+  <link rel="stylesheet" href="vokabeltrainer.css" />
+</head>
+<body>
+  <div class="wrap">
+    <main class="grid">
+      <!-- LEFT -->
+      <section class="card">
+        <div class="cardHead">
+          <h2>Vokabeln anlegen</h2>
+          <span class="tag">Schnell hinzufügen</span>
+        </div>
+        <div class="cardBody">
+          <div class="formGrid">
+            <div class="field">
+              <label for="w1">Wort (Sprache 1)</label>
+              <input class="input" id="w1" placeholder="z.B. apple" />
+            </div>
+
+            <div class="field">
+              <label for="w2">Übersetzung (Sprache 2)</label>
+              <input class="input" id="w2" placeholder="z.B. Apfel" />
+            </div>
+
+            <div class="field">
+              <label for="diff">Schwierigkeit</label>
+              <select class="select" id="diff">
+                <option value="easy">Leicht</option>
+                <option value="mid" selected>Mittel</option>
+                <option value="hard">Schwer</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="box">Box (1–5)</label>
+              <select class="select" id="box">
+                <option value="1" selected>1 (neu)</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5 (sehr sicher)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn primary" id="saveBtn" type="button">Speichern</button>
+            <button class="btn danger" id="clearBtn" type="button">Alles löschen</button>
+            <button class="btn" id="demoBtn" type="button">Demo-Vokabeln</button>
+            <button class="btn" id="themeBtn" type="button">🌙/☀️</button>
+          </div>
+
+          <p class="hint">
+            <b>Spaced Repetition:</b> Bei <b>richtig</b> → Box hoch (später). Bei <b>falsch</b> → Box runter (früher).
+          </p>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <section class="card">
+        <div class="cardHead">
+          <h2>Deine Vokabeln</h2>
+          <span class="tag">Suche · Übersicht</span>
+        </div>
+        <div class="cardBody">
+          <div class="searchBar">
+            <input class="input" id="search" placeholder="Suchen (Wort / Übersetzung)..." />
+            <select class="mini" id="filterBox" title="Box filtern">
+              <option value="all">Alle Boxen</option>
+              <option value="1">Box 1</option>
+              <option value="2">Box 2</option>
+              <option value="3">Box 3</option>
+              <option value="4">Box 4</option>
+              <option value="5">Box 5</option>
+            </select>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <small>Gesamt</small>
+              <strong id="totalCount">0</strong>
+            </div>
+            <div class="stat">
+              <small>Angezeigt</small>
+              <strong id="shownCount">0</strong>
+            </div>
+            <div class="stat">
+              <small>Heute fällig</small>
+              <strong id="dueCount">0</strong>
+            </div>
+          </div>
+
+          <div class="list" id="list"></div>
+          <p class="footerNote">Enter im Lernmodus = prüfen + automatisch nächste Frage.</p>
+        </div>
+      </section>
+
+      <!-- FULL WIDTH -->
+      <section class="card full">
+        <div class="cardHead">
+          <h2>Lernmodus (Abfrage)</h2>
+          <span class="tag">Training / Prüfungsmodus</span>
+        </div>
+
+        <div class="cardBody">
+          <div class="learnTop">
+            <div class="learnLeft">
+              <button class="btn primary" id="startBtn" type="button">Start</button>
+
+              <label class="toggle">
+                <input type="checkbox" id="examMode" />
+                Prüfungsmodus (ohne Lösung)
+              </label>
+
+              <select class="mini" id="timeLimit">
+                <option value="0">Kein Zeitlimit</option>
+                <option value="10">10s</option>
+                <option value="20">20s</option>
+                <option value="30">30s</option>
+              </select>
+
+              <span class="tag" id="timerTag">⏱️ —</span>
+            </div>
+
+            <div class="tag">
+              Modus:
+              <button class="linkBtn" id="swapBtn" type="button">Sprache 1 → Sprache 2</button>
+            </div>
+          </div>
+
+          <div class="quiz" id="quiz" hidden>
+            <div class="qTitle">
+              <strong id="question">—</strong>
+              <small id="qMeta">Box — · Schwierigkeit —</small>
+            </div>
+
+            <input class="input" id="answer" placeholder="Deine Antwort... (Enter zum Prüfen)" />
+
+            <div class="answerRow">
+              <button class="btn" id="showBtn" type="button">Lösung anzeigen</button>
+              <button class="btn" id="skipBtn" type="button">Überspringen</button>
+
+              <span class="resultPill" id="resultPill" hidden>—</span>
+            </div>
+
+            <div class="msg" id="msg"></div>
+          </div>
+
+          <div class="msg" id="learnInfo">
+            Klicke auf <b>Start</b>, um eine zufällige Vokabel abzufragen.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="vokabeltrainer.js"></script>
+</body>
+</html>
