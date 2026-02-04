@@ -16,9 +16,9 @@ function saveTasks() {
 function addTask(event) {
     event.preventDefault();
     const title = document.getElementById('task-title').value;
-    const description = document.getElementById('task-description').value;
+    const description = document.getElementById('task-desc').value;
     const deadline = document.getElementById('task-deadline').value;
-    const priority = document.getElementById('task-priority').value;
+    const priority = document.getElementById('Task-priority').value;
     const task = {
         id: Date.now(),
         title,
@@ -38,22 +38,22 @@ function addTask(event) {
 
     function renderTasks(){
         const taskList = document.getElementById('task-list');
-        taskList.innnerHTML = '';
+        taskList.innerHTML = '';
         tasks.forEach(task => {
             const li = document.createElement('li');
             li.className = 'task-item'+(task.completed ? ' completed' : '') ;
             li.innerHTML = `
             <div class="task-details">
             <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
-            <strong>${task.title}</strong> -${task.description} <br>
-            Deadline: ${task.deadline} | Priorität: <span class="task-priority ${task.priority}</span>
+            <strong>${task.title}</strong> - ${task.description} <br>
+            Deadline: ${task.deadline} | Priorität: <span class="task-priority ${task.priority}"></span>
             </div> `;
             taskList.appendChild(li);
         });
     }
     function toggleTask(id){
         const task = tasks.find(t => t.id === id);
-        task.comleted = !task.completed;
+        task.completed = !task.completed;
         saveTasks();
         renderTasks();
         updateProgress();
@@ -65,7 +65,7 @@ function addTask(event) {
         const completed = tasks.filter(t => t.completed).length;
         const total = tasks.length;
         const percentage = total > 0 ? (completed / total) * 100 : 0;
-        document.getElementById('progress-bar').style.width = percentage + '%';
+        document.getElementById('progress-fill').style.width = percentage + '%';
         document.getElementById('progress-text').innerText = `Fortschritt: ${completed} / ${total} Aufgaben erledigt`;
     }
 
@@ -79,15 +79,62 @@ function addTask(event) {
         } else {
             dailyTasks.forEach(task => {
                 const li = document.createElement('li');
-                li.innerText = task.title + (task.completed ? ' completed' : '');
+                li.className = 'task-item' + (task.completed ? ' completed' : '');
                 li.innerHTML = `
                 <div class="task-details">
                 <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
-                <strong>${task.title}</strong> -${task.description} <br>
+                <strong>${task.title}</strong> - ${task.description} <br>
                 Priority: <span class="task-priority ${task.priority}</span>
                 </div> `;
                 dailyList.appendChild(li);
             });
+        }
+    }
+    function renderCalendar(){
+        const calendar = document.getElementById('calendar');
+        calendar.innerHTML = '';
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
+        const daysOfWeek = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+        daysOfWeek.forEach(day => {
+            const div = document.createElement('div');
+            div.textContent = day;
+            div.style.fontWeight = 'bold';
+            calendar.appendChild(div);
+        });
 
+        for (let i= 0; i < firstDay; i++){
+            const div = document.createElement('div');
+            calendar.appendChild(div);
+        }
+
+        for (let day =1; day <= daysInMonth; day++){
+            const div = document.createElement('div');
+            div.textContent = day;
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayTasks = tasks.filter(t => t.deadline === dateStr);
+            if (dayTasks.length > 0){
+                div.classList.add('tasks');
+                div.innerHTML += `<br>${dayTasks.length} Aufgabe(n)`;
+            }
+            calendar.appendChild(div);
+        }
+    }
+function checkReminders(){
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const upcomingTasks = tasks.filter(t => !t.completed &&  (t.deadline === tomorrowStr || new Date(t.deadline) < today));
+    if (upcomingTasks.length > 0){
+        alert( `Erinnerung: ${upcomingTasks.length} Aufgabe(n) sind überfällig oder fällig morgen!`);
+    }
+}
+function loadTasks(){
+    renderTasks();
+}
     
