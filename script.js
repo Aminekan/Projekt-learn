@@ -1,522 +1,803 @@
-// ========= LocalStorage Keys =========
-const LS_MG_BEST = "minigame_best_v3";
-const LS_VOCABS = "vocabs_v3";
+// ========= STORAGE KEYS =========
+const VOCAB_STORAGE_KEY = "meine_vokabeln";
+const STATS_STORAGE_KEY = "lern_stats";
 
-// ========= Game Variables =========
-let mgCards = [];
-let mgFirst = null;
-let mgSecond = null;
-let mgLock = false;
-let mgMoves = 0;
-let mgMatches = 0;
-let mgTimer = null;
-let mgSeconds = 0;
-let mgRunning = false;
-let currentLevel = 8;
-let matchStreak = 0;
-let lastMatchTime = 0;
+// ========= VOCAB PANEL ELEMENTS =========
+const wordQ = document.getElementById("wordQ");
+const wordA = document.getElementById("wordA");
+const wordCategory = document.getElementById("wordCategory");
+const saveBtn = document.getElementById("saveVocabBtn");
+const deleteAllBtn = document.getElementById("deleteAllBtn");
+const searchInput = document.getElementById("searchInput");
+const vocabListContainer = document.getElementById("vocabListContainer");
+const vocabCounter = document.getElementById("vocabCounter");
+const difficultySelect = document.getElementById("difficultySelect");
+const filterBtns = document.querySelectorAll(".filter-btn");
 
-// ========= DOM Elements =========
-const mgStartBtn = document.getElementById("mgStart");
-const mgPlayAgainBtn = document.getElementById("mgPlayAgain");
-const mgBoard = document.getElementById("mgBoard");
-const mgInfo = document.getElementById("mgInfo");
-const mgTimeEl = document.getElementById("mgTime");
-const mgMovesEl = document.getElementById("mgMoves");
-const mgMatchesEl = document.getElementById("mgMatches");
-const mgBestEl = document.getElementById("mgBest");
-const mgWin = document.getElementById("mgWin");
-const mgWinText = document.getElementById("mgWinText");
-const mgProgress = document.getElementById("mgProgress");
-const levelBtnsModern = document.querySelectorAll(".level-btn-modern");
+// ========= MEMORY ELEMENTS =========
+const memoryBoard = document.getElementById("memoryBoard");
+const timerDisplay = document.getElementById("timerDisplay");
+const movesDisplay = document.getElementById("movesDisplay");
+const matchesDisplay = document.getElementById("matchesDisplay");
+const bestTimeDisplay = document.getElementById("bestTimeDisplay");
+const gameInfo = document.getElementById("gameInfo");
+const progressBar = document.getElementById("progressBar");
+const winMessage = document.getElementById("winMessage");
+const memoryStartBtn = document.getElementById("memoryStartBtn");
+const difficultyBtns = document.querySelectorAll(".tab-btn");
+const progressPercent = document.getElementById("progressPercent");
 
-// ========= Level-Button Events =========
-levelBtnsModern.forEach(btn => {
-    btn.addEventListener("click", function () {
-        levelBtnsModern.forEach(b => b.classList.remove("active"));
+// ========= STATS ELEMENTS =========
+const learnedCount = document.getElementById("learnedCount");
+const totalTime = document.getElementById("totalTime");
+const streakCount = document.getElementById("streakCount");
+const totalLearned = document.getElementById("totalLearned");
+const successRate = document.getElementById("successRate");
+const bestStreak = document.getElementById("bestStreak");
+const challengeNovice = document.getElementById("challengeNovice");
+const challengeExpert = document.getElementById("challengeExpert");
+const challengeMaster = document.getElementById("challengeMaster");
+const dailyCount = document.getElementById("dailyCount");
+const dailyStreak = document.getElementById("dailyStreak");
+const dailyFill = document.getElementById("dailyFill");
+const extraTabs = document.querySelectorAll(".extra-tab");
+const extraContents = document.querySelectorAll(".extra-content");
+const statsChartCanvas = document.getElementById("statsChart");
+
+// ========= GAME VARIABLES =========
+let cards = [];
+let firstCard = null;
+let secondCard = null;
+let lockBoard = false;
+let moves = 0;
+let matches = 0;
+let seconds = 0;
+let timer = null;
+let gameActive = false;
+let currentLevel = 6;
+let currentDifficulty = 1;
+let currentFilter = "all";
+let statsChart = null;
+
+// ========= STATS VARIABLES =========
+let stats = {
+    gamesPlayed: 0,
+    gamesWon: 0,
+    totalMoves: 0,
+    totalTime: 0,
+    learnedVocabs: [],
+    dailyGoal: 10,
+    dailyProgress: 0,
+    lastPlayed: null,
+    streak: 0,
+    bestStreak: 0,
+    challenges: {
+        novice: 0,
+        expert: 0,
+        master: 0
+    },
+    weeklyData: [0, 0, 0, 0, 0, 0, 0]
+};
+
+// ========= FUNCTIONS DE BASE =========
+function getVocabs() {
+    const data = localStorage.getItem(VOCAB_STORAGE_KEY);
+    if (data) {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
+function saveVocabs(vocabs) {
+    localStorage.setItem(VOCAB_STORAGE_KEY, JSON.stringify(vocabs));
+    return true;
+}
+
+function getStats() {
+    const data = localStorage.getItem(STATS_STORAGE_KEY);
+    if (data) {
+        try {
+            const parsedStats = JSON.parse(data);
+            return { ...stats, ...parsedStats };
+        } catch (e) {
+            return stats;
+        }
+    }
+    return stats;
+}
+
+function saveStats(newStats) {
+    localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(newStats));
+    stats = newStats;
+    updateStatsDisplay();
+    updateChart();
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// ========= RENDER VOCAB LIST =========
+function renderVocabList(searchTerm = "") {
+    const vocabs = getVocabs();
+    
+    let filtered = vocabs;
+    
+    if (currentFilter !== "all") {
+        filtered = filtered.filter(v => v.difficulty === parseInt(currentFilter));
+    }
+    
+    if (searchTerm) {
+        filtered = filtered.filter(v => 
+            v.q.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            v.a.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (v.category && v.category.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+    }
+    
+    vocabListContainer.innerHTML = "";
+    
+    if (filtered.length === 0) {
+        const emptyDiv = document.createElement("div");
+        emptyDiv.className = "vocab-item";
+        emptyDiv.style.color = "#94a3b8";
+        emptyDiv.style.justifyContent = "center";
+        emptyDiv.textContent = "Keine Vokabeln vorhanden";
+        vocabListContainer.appendChild(emptyDiv);
+    } else {
+        filtered.forEach((v, index) => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "vocab-item";
+            
+            let difficultyText = "Mittel";
+            let difficultyColor = "#fbbf24";
+            if (v.difficulty === 1) {
+                difficultyText = "Leicht";
+                difficultyColor = "#4ade80";
+            }
+            if (v.difficulty === 3) {
+                difficultyText = "Schwer";
+                difficultyColor = "#f87171";
+            }
+            
+            const categoryText = v.category ? ` · ${v.category}` : '';
+            
+            itemDiv.innerHTML = `
+                <div style="flex:1">
+                    <strong>${escapeHtml(v.q)} → ${escapeHtml(v.a)}</strong>
+                    <div class="vocab-meta">
+                        <i class="fas fa-signal" style="color: ${difficultyColor}"></i> ${difficultyText}
+                        ${categoryText}
+                        ${v.learned ? ' · <i class="fas fa-check-circle" style="color:#4ade80"></i> Gelernt' : ''}
+                    </div>
+                </div>
+                <button class="delete-single" data-index="${index}" style="background:none; border:none; color:#f56565; cursor:pointer;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            
+            vocabListContainer.appendChild(itemDiv);
+        });
+        
+        document.querySelectorAll(".delete-single").forEach(btn => {
+            btn.addEventListener("click", function(e) {
+                e.stopPropagation();
+                const index = this.getAttribute("data-index");
+                deleteVocab(parseInt(index));
+            });
+        });
+    }
+    
+    vocabCounter.textContent = `Angezeigt: ${filtered.length} / Gesamt: ${vocabs.length}`;
+}
+
+function deleteVocab(index) {
+    const vocabs = getVocabs();
+    if (index >= 0 && index < vocabs.length) {
+        vocabs.splice(index, 1);
+        saveVocabs(vocabs);
+        renderVocabList(searchInput.value);
+    }
+}
+
+// ========= SAVE BUTTON =========
+saveBtn.addEventListener("click", function() {
+    const q = wordQ.value.trim();
+    const a = wordA.value.trim();
+    const category = wordCategory.value.trim();
+    
+    if (!q || !a) {
+        alert("Bitte Wort und Übersetzung eingeben!");
+        return;
+    }
+    
+    let difficultyValue = 2;
+    if (difficultySelect.value === "Leicht") difficultyValue = 1;
+    if (difficultySelect.value === "Mittel") difficultyValue = 2;
+    if (difficultySelect.value === "Schwer") difficultyValue = 3;
+    
+    const vocabs = getVocabs();
+    
+    const newVocab = {
+        id: Date.now() + Math.random(),
+        q: q,
+        a: a,
+        category: category || "Allgemein",
+        difficulty: difficultyValue,
+        box: 1,
+        faellig: true,
+        learned: false,
+        timesCorrect: 0,
+        timesWrong: 0
+    };
+    
+    vocabs.push(newVocab);
+    saveVocabs(vocabs);
+    
+    wordQ.value = "";
+    wordA.value = "";
+    wordCategory.value = "";
+    renderVocabList(searchInput.value);
+});
+
+// ========= DELETE ALL =========
+deleteAllBtn.addEventListener("click", () => {
+    if (confirm("Alle Vokabeln löschen?")) {
+        localStorage.removeItem(VOCAB_STORAGE_KEY);
+        renderVocabList("");
+    }
+});
+
+// ========= SEARCH =========
+searchInput.addEventListener("input", (e) => {
+    renderVocabList(e.target.value);
+});
+
+// ========= FILTER BUTTONS =========
+filterBtns.forEach(btn => {
+    btn.addEventListener("click", function() {
+        filterBtns.forEach(b => b.classList.remove("active"));
         this.classList.add("active");
-        currentLevel = parseInt(this.dataset.level);
-        mgRefreshBest();
-        mgInfo.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>Level ${currentLevel} ausgewählt. Starte das Spiel!</span>
-        `;
+        currentFilter = this.dataset.filter;
+        renderVocabList(searchInput.value);
     });
 });
 
-// ========= Game Functions =========
-mgStartBtn.addEventListener("click", mgStart);
-mgPlayAgainBtn.addEventListener("click", mgStart);
-
-function mgResetUI(message = "") {
-    mgBoard.innerHTML = "";
-    mgInfo.innerHTML = message;
-    mgWin.style.display = "none";
-    mgMoves = 0;
-    mgMatches = 0;
-    mgSeconds = 0;
-    mgRunning = false;
-    mgFirst = null;
-    mgSecond = null;
-    mgLock = false;
-    matchStreak = 0;
-    mgMovesEl.textContent = "0";
-    mgMatchesEl.textContent = "0";
-    mgTimeEl.textContent = "00:00";
-    mgProgress.style.width = "0%";
-    mgStopTimer();
-    mgRefreshBest();
-}
-
-function mgStart() {
-    const vocabs = loadVocabs();
-    if (!vocabs.length) {
-        mgResetUI(`
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>Bitte zuerst Vokabeln anlegen (im Vokabeltrainer).</span>
-        `);
-        return;
-    }
-
-    mgWin.style.display = "none";
-    mgInfo.innerHTML = `
-        <div class="loading">
-            <div class="loading-dot"></div>
-            <div class="loading-dot"></div>
-            <div class="loading-dot"></div>
-        </div>
-        <div style="margin-top: 10px;">Spiel wird vorbereitet...</div>
-    `;
-
-    mgMoves = 0;
-    mgMatches = 0;
-    mgSeconds = 0;
-    mgMovesEl.textContent = "0";
-    mgMatchesEl.textContent = "0";
-    mgTimeEl.textContent = "00:00";
-    mgProgress.style.width = "0%";
-    mgStopTimer();
-
-    mgFirst = null;
-    mgSecond = null;
-    mgLock = false;
-    mgRunning = true;
-    matchStreak = 0;
-
-    const pairs = currentLevel;
-    const pool = shuffle([...vocabs]).slice(0, Math.min(pairs, vocabs.length));
-
-    if (pool.length < pairs) {
-        mgInfo.innerHTML = `
-            <i class="fas fa-times-circle"></i>
-            <span>Nicht genug Vokabeln für Level ${pairs}. Füge mehr Vokabeln hinzu!</span>
-        `;
-        mgRunning = false;
-        return;
-    }
-
-    mgCards = [];
-    pool.forEach(v => {
-        mgCards.push({
-            id: randomId(),
-            pairId: v.id || v.q,
-            type: "Wort",
-            text: v.q,
-            matched: false,
-            flipped: false
-        });
-        mgCards.push({
-            id: randomId(),
-            pairId: v.id || v.q,
-            type: "Übersetzung",
-            text: v.a,
-            matched: false,
-            flipped: false
-        });
-    });
-
-    mgCards = shuffle(mgCards);
-
-    setTimeout(() => {
-        mgRenderBoard(mgCards);
-        mgInfo.innerHTML = `
-            <i class="fas fa-lightbulb"></i>
-            <span>Level ${currentLevel} - Finde die Wortpaare!</span>
-        `;
-
-        // Preview animation
-        const cards = document.querySelectorAll('.card-game-modern');
-        cards.forEach((card, index) => {
-            setTimeout(() => {
-                card.classList.add('flipped');
-                setTimeout(() => {
-                    card.classList.remove('flipped');
-                    if (index === cards.length - 1) {
-                        mgStartTimer();
-                    }
-                }, 800);
-            }, index * 100);
-        });
-    }, 1000);
-}
-
-function mgRenderBoard(cards) {
-    mgBoard.innerHTML = '';
-
-    cards.forEach(card => {
-        const el = document.createElement('div');
-        el.className = 'card-game-modern';
-        el.dataset.id = card.id;
-
-        el.innerHTML = `
-            <div class="card-front">
-                <div class="card-type-modern">Memory</div>
-            </div>
-            <div class="card-back">
-                <div class="card-text-modern">${escapeHtml(card.text)}</div>
-                <div class="card-type-modern">${escapeHtml(card.type)}</div>
-            </div>
-        `;
-
-        el.addEventListener('click', () => mgFlip(card.id));
-        mgBoard.appendChild(el);
-    });
-
-    const numCards = cards.length;
-    let columns = 5;
-    if (numCards <= 12) columns = 4;
-    if (numCards <= 8) columns = 3;
-    if (numCards <= 4) columns = 2;
-
-    mgBoard.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-}
-
-function mgFlip(cardId) {
-    if (!mgRunning || mgLock) return;
-
-    const card = mgCards.find(c => c.id === cardId);
-    if (!card || card.matched || card.flipped) return;
-
-    const el = mgGetCardEl(cardId);
-    if (!el) return;
-
-    // Flip animation
-    el.classList.add('flip-animation', 'flipped');
-    card.flipped = true;
-
-    if (!mgFirst) {
-        mgFirst = card;
-        return;
-    }
-
-    if (mgFirst.id === cardId) return;
-
-    mgSecond = card;
-    mgMoves++;
-    mgMovesEl.textContent = mgMoves;
-
-    // Update progress bar
-    const progress = (mgMatches / (mgCards.length / 2)) * 100;
-    mgProgress.style.width = `${progress}%`;
-
-    mgLock = true;
-
-    const isMatch = (mgFirst.pairId === mgSecond.pairId) && (mgFirst.type !== mgSecond.type);
-
-    setTimeout(() => {
-        if (isMatch) {
-            // Match found
-            card.matched = true;
-            mgFirst.matched = true;
-
-            mgGetCardEl(mgFirst.id)?.classList.add('matched', 'match-animation');
-            mgGetCardEl(mgSecond.id)?.classList.add('matched', 'match-animation');
-
-            mgMatches++;
-            mgMatchesEl.textContent = mgMatches;
-
-            // Streak logic
-            const currentTime = Date.now();
-            if (currentTime - lastMatchTime < 2000) {
-                matchStreak++;
-            } else {
-                matchStreak = 1;
-            }
-            lastMatchTime = currentTime;
-
-            // Show streak message
-            if (matchStreak > 1) {
-                showStreakMessage(matchStreak);
-            }
-
-            mgFirst = null;
-            mgSecond = null;
-            mgLock = false;
-
-            // Update progress bar
-            const newProgress = (mgMatches / (mgCards.length / 2)) * 100;
-            mgProgress.style.width = `${newProgress}%`;
-
-            if (mgMatches === mgCards.length / 2) {
-                setTimeout(() => mgWinGame(), 500);
-            }
-        } else {
-            // No match
-            mgGetCardEl(mgFirst.id)?.classList.add('wrong-animation');
-            mgGetCardEl(mgSecond.id)?.classList.add('wrong-animation');
-
-            matchStreak = 0;
-
-            setTimeout(() => {
-                mgGetCardEl(mgFirst.id)?.classList.remove('flipped', 'wrong-animation');
-                mgGetCardEl(mgSecond.id)?.classList.remove('flipped', 'wrong-animation');
-                mgFirst.flipped = false;
-                mgSecond.flipped = false;
-                mgFirst = null;
-                mgSecond = null;
-                mgLock = false;
-            }, 1000);
-        }
-    }, 600);
-}
-
-function mgWinGame() {
-    mgRunning = false;
-    mgStopTimer();
-
-    const timeStr = mgFormatTime(mgSeconds);
-    const score = calculateScore(mgSeconds, mgMoves, currentLevel);
-
-    mgWin.style.display = 'block';
-    mgWinText.innerHTML = `
-        <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem;">
-            🏆 Level ${currentLevel} abgeschlossen!
-        </div>
-        <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
-                    padding: 1.5rem; 
-                    border-radius: 15px; 
-                    color: white;
-                    margin: 1rem 0;">
-            <div><i class="fas fa-clock"></i> Zeit: <b>${timeStr}</b></div>
-            <div><i class="fas fa-sync-alt"></i> Züge: <b>${mgMoves}</b></div>
-            <div><i class="fas fa-star"></i> Score: <b>${score}</b></div>
-        </div>
-    `;
-
-    const best = mgGetBest(currentLevel);
-    if (best == null || mgSeconds < best) {
-        mgSetBest(currentLevel, mgSeconds);
-        mgRefreshBest();
-        mgInfo.innerHTML = `
-            <i class="fas fa-trophy"></i>
-            <span>🎉 NEUE BESTZEIT! Du hast deinen eigenen Rekord gebrochen!</span>
-        `;
-    } else {
-        const timeDiff = mgSeconds - best;
-        mgInfo.innerHTML = `
-            <i class="fas fa-medal"></i>
-            <span>✅ Super Leistung! Bestzeit: ${mgFormatTime(best)}</span>
-        `;
-    }
-}
-
-function mgGetCardEl(id) {
-    return mgBoard.querySelector(`.card-game-modern[data-id="${CSS.escape(id)}"]`);
-}
-
-function mgStartTimer() {
-    mgStopTimer();
-    mgTimer = setInterval(() => {
-        mgSeconds++;
-        mgTimeEl.textContent = mgFormatTime(mgSeconds);
+// ========= EXTRA TABS =========
+extraTabs.forEach(tab => {
+    tab.addEventListener("click", function() {
+        extraTabs.forEach(t => t.classList.remove("active"));
+        extraContents.forEach(c => c.classList.remove("active"));
         
-        // Add pulse animation every 10 seconds
-        if (mgSeconds % 10 === 0) {
-            mgTimeEl.classList.add('pulse');
-            setTimeout(() => mgTimeEl.classList.remove('pulse'), 1000);
+        this.classList.add("active");
+        const tabId = this.dataset.tab;
+        const targetTab = document.getElementById(tabId + "Tab");
+        if (targetTab) {
+            targetTab.classList.add("active");
+            if (tabId === "stats") {
+                setTimeout(() => updateChart(), 100);
+            }
         }
+    });
+});
+
+// ========= MEMORY FUNCTIONS =========
+difficultyBtns.forEach(btn => {
+    btn.addEventListener("click", function() {
+        difficultyBtns.forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        currentLevel = parseInt(this.dataset.level);
+        
+        const btnText = this.querySelector("span").textContent;
+        if (btnText === "Leicht") currentDifficulty = 1;
+        else if (btnText === "Mittel") currentDifficulty = 2;
+        else if (btnText === "Schwer") currentDifficulty = 3;
+    });
+});
+
+memoryStartBtn.addEventListener("click", startGame);
+
+function startGame() {
+    const alleVocabs = getVocabs();
+    
+    const gefilterteVocabs = alleVocabs.filter(v => v.difficulty === currentDifficulty);
+    
+    if (gefilterteVocabs.length < currentLevel) {
+        gameInfo.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>Nicht genug Vokabeln für dieses Level! (${gefilterteVocabs.length}/${currentLevel})</span>`;
+        return;
+    }
+    
+    cards = [];
+    firstCard = null;
+    secondCard = null;
+    lockBoard = false;
+    moves = 0;
+    matches = 0;
+    seconds = 0;
+    gameActive = true;
+    
+    movesDisplay.textContent = moves;
+    matchesDisplay.textContent = matches;
+    timerDisplay.textContent = formatTime(seconds);
+    progressBar.style.width = "0%";
+    if (progressPercent) progressPercent.textContent = "0%";
+    winMessage.style.display = "none";
+    
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
+        seconds++;
+        timerDisplay.textContent = formatTime(seconds);
     }, 1000);
+    
+    const shuffled = [...gefilterteVocabs].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, currentLevel);
+    
+    cards = [];
+    selected.forEach(v => {
+        cards.push({ id: v.id, text: v.q, matched: false, vocab: v });
+        cards.push({ id: v.id, text: v.a, matched: false, vocab: v });
+    });
+    
+    cards.sort(() => Math.random() - 0.5);
+    
+    renderBoard();
+    gameInfo.innerHTML = `<i class="fas fa-play"></i><span>Spiel gestartet mit ${currentLevel} ${getDifficultyName(currentDifficulty)}-Paaren!</span>`;
 }
 
-function mgStopTimer() {
-    if (mgTimer) {
-        clearInterval(mgTimer);
-        mgTimer = null;
+function getDifficultyName(diff) {
+    if (diff === 1) return "Leicht";
+    if (diff === 2) return "Mittel";
+    return "Schwer";
+}
+
+function renderBoard() {
+    memoryBoard.innerHTML = "";
+    const cols = Math.min(4, Math.ceil(Math.sqrt(cards.length)));
+    memoryBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    
+    cards.forEach((card, index) => {
+        const cardEl = document.createElement("div");
+        cardEl.className = "memory-card";
+        cardEl.dataset.index = index;
+        
+        cardEl.addEventListener("click", function() {
+            flipCard(index);
+        });
+        
+        memoryBoard.appendChild(cardEl);
+    });
+}
+
+// ========= CORE GAME FUNCTION - FLIP CARD =========
+function flipCard(index) {
+    if (!gameActive || lockBoard) return;
+    
+    const card = cards[index];
+    const cardEl = memoryBoard.children[index];
+    
+    if (card.matched || cardEl.classList.contains("flipped")) return;
+    
+    cardEl.textContent = card.text;
+    cardEl.classList.add("flipped");
+    
+    if (!firstCard) {
+        firstCard = { index, el: cardEl, data: card };
+        return;
+    }
+    
+    if (firstCard.index === index) return;
+    
+    secondCard = { index, el: cardEl, data: card };
+    lockBoard = true;
+    moves++;
+    movesDisplay.textContent = moves;
+    
+    if (firstCard.data.id === secondCard.data.id) {
+        if (typeof confetti === 'function') {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 10,
+                        spread: 45,
+                        origin: { 
+                            x: Math.random(), 
+                            y: Math.random() * 0.5 
+                        }
+                    });
+                }, i * 50);
+            }
+        }
+        
+        card.matched = true;
+        cards[firstCard.index].matched = true;
+        
+        firstCard.el.classList.add("matched");
+        secondCard.el.classList.add("matched");
+        
+        matches++;
+        matchesDisplay.textContent = matches;
+        
+        const progress = Math.round((matches / (cards.length / 2)) * 100);
+        progressBar.style.width = `${progress}%`;
+        if (progressPercent) progressPercent.textContent = progress + '%';
+        
+        const vocab = card.vocab;
+        const allVocabs = getVocabs();
+        const vocabIndex = allVocabs.findIndex(v => v.id === vocab.id);
+        if (vocabIndex !== -1) {
+            allVocabs[vocabIndex].timesCorrect = (allVocabs[vocabIndex].timesCorrect || 0) + 1;
+            if (allVocabs[vocabIndex].timesCorrect >= 3) {
+                allVocabs[vocabIndex].learned = true;
+            }
+            saveVocabs(allVocabs);
+        }
+        
+        firstCard = null;
+        secondCard = null;
+        lockBoard = false;
+        
+        checkWin();
+    } else {
+        setTimeout(() => {
+            firstCard.el.classList.remove("flipped");
+            secondCard.el.classList.remove("flipped");
+            firstCard.el.textContent = "";
+            secondCard.el.textContent = "";
+            firstCard = null;
+            secondCard = null;
+            lockBoard = false;
+        }, 800);
     }
 }
 
-function mgFormatTime(sec) {
+function checkWin() {
+    const allMatched = cards.every(c => c.matched);
+    if (allMatched) {
+        gameActive = false;
+        clearInterval(timer);
+        
+        console.log("🎉 GEWONNEN! Statistiken werden aktualisiert...");
+        
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }
+        
+        winMessage.style.display = "block";
+        winMessage.innerHTML = `
+            <i class="fas fa-trophy"></i>
+            <h3>HERZLICHEN GLÜCKWUNSCH!</h3>
+            <p>Zeit: ${formatTime(seconds)} | Züge: ${moves}</p>
+        `;
+        
+        gameInfo.innerHTML = `<i class="fas fa-check-circle"></i><span>Spiel beendet! Du hast gewonnen! 🎉</span>`;
+        
+        // تحديث الإحصائيات
+        updateStatsAfterWin();
+    }
+}
+
+function updateStatsAfterWin() {
+    console.log("📊 updateStatsAfterWin() wird ausgeführt...");
+    
+    const currentStats = getStats();
+    console.log("Aktuelle Stats vor Update:", currentStats);
+    
+    // زيادة عدد الألعاب
+    currentStats.gamesPlayed = (currentStats.gamesPlayed || 0) + 1;
+    currentStats.gamesWon = (currentStats.gamesWon || 0) + 1;
+    currentStats.totalMoves = (currentStats.totalMoves || 0) + moves;
+    currentStats.totalTime = (currentStats.totalTime || 0) + seconds;
+    
+    console.log("Nach Spielzählung:", {
+        gamesPlayed: currentStats.gamesPlayed,
+        gamesWon: currentStats.gamesWon
+    });
+    
+    // زيادة التقدم اليومي
+    currentStats.dailyProgress = (currentStats.dailyProgress || 0) + 1;
+    
+    // تحديث بيانات الأسبوع
+    const today = new Date().getDay();
+    const dayIndex = today === 0 ? 6 : today - 1;
+    
+    if (!currentStats.weeklyData) {
+        currentStats.weeklyData = [0, 0, 0, 0, 0, 0, 0];
+    }
+    currentStats.weeklyData[dayIndex] = (currentStats.weeklyData[dayIndex] || 0) + 1;
+    
+    // تحديث التحديات
+    if (!currentStats.challenges) {
+        currentStats.challenges = { novice: 0, expert: 0, master: 0 };
+    }
+    currentStats.challenges.novice = (currentStats.challenges.novice || 0) + 1;
+    currentStats.challenges.expert = (currentStats.challenges.expert || 0) + 1;
+    currentStats.challenges.master = (currentStats.challenges.master || 0) + 1;
+    
+    // تحديث streak
+    const todayStr = new Date().toDateString();
+    if (currentStats.lastPlayed !== todayStr) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (currentStats.lastPlayed === yesterday.toDateString()) {
+            currentStats.streak = (currentStats.streak || 0) + 1;
+        } else {
+            currentStats.streak = 1;
+        }
+        
+        if ((currentStats.streak || 0) > (currentStats.bestStreak || 0)) {
+            currentStats.bestStreak = currentStats.streak;
+        }
+        
+        currentStats.lastPlayed = todayStr;
+    }
+    
+    console.log("Stats nach Update (vor save):", currentStats);
+    
+    // حفظ الإحصائيات
+    saveStats(currentStats);
+    
+    // تحديث العرض
+    renderVocabList(searchInput.value);
+    
+    console.log("✅ Statistiken gespeichert!");
+}
+
+function updateStatsDisplay() {
+    console.log("📊 updateStatsDisplay() wird ausgeführt...");
+    
+    const currentStats = getStats();
+    const vocabs = getVocabs();
+    
+    const learned = vocabs.filter(v => v.learned).length;
+    
+    if (learnedCount) learnedCount.textContent = learned;
+    if (totalLearned) totalLearned.textContent = learned;
+    
+    const totalMinutes = Math.floor((currentStats.totalTime || 0) / 60);
+    if (totalTime) totalTime.textContent = totalMinutes;
+    
+    if (streakCount) streakCount.textContent = currentStats.streak || 0;
+    if (dailyStreak) dailyStreak.textContent = currentStats.streak || 0;
+    if (bestStreak) bestStreak.textContent = currentStats.bestStreak || 0;
+    
+    // حساب نسبة النجاح
+    const gamesPlayed = currentStats.gamesPlayed || 0;
+    const gamesWon = currentStats.gamesWon || 0;
+    const rate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
+    
+    console.log("Erfolgsquote Berechnung:", {
+        gamesPlayed,
+        gamesWon,
+        rate
+    });
+    
+    if (successRate) {
+        successRate.textContent = rate + '%';
+    }
+    
+    if (challengeNovice) challengeNovice.textContent = `${currentStats.challenges?.novice || 0}/10`;
+    if (challengeExpert) challengeExpert.textContent = `${currentStats.challenges?.expert || 0}/50`;
+    if (challengeMaster) challengeMaster.textContent = `${currentStats.challenges?.master || 0}/100`;
+    
+    const noviceFill = document.querySelector('[data-challenge="novice"] .challenge-fill');
+    const expertFill = document.querySelector('[data-challenge="expert"] .challenge-fill');
+    const masterFill = document.querySelector('[data-challenge="master"] .challenge-fill');
+    
+    if (noviceFill) noviceFill.style.width = Math.min(100, ((currentStats.challenges?.novice || 0) / 10) * 100) + '%';
+    if (expertFill) expertFill.style.width = Math.min(100, ((currentStats.challenges?.expert || 0) / 50) * 100) + '%';
+    if (masterFill) masterFill.style.width = Math.min(100, ((currentStats.challenges?.master || 0) / 100) * 100) + '%';
+    
+    const dailyProgress = currentStats.dailyProgress || 0;
+    const dailyTarget = currentStats.dailyGoal || 10;
+    if (dailyCount) dailyCount.textContent = `${dailyProgress}/${dailyTarget}`;
+    if (dailyFill) dailyFill.style.width = Math.min(100, (dailyProgress / dailyTarget) * 100) + '%';
+}
+
+function formatTime(sec) {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-function mgGetBest(level) {
+// ========= CHART FUNCTION =========
+function updateChart() {
+    if (!statsChartCanvas) {
+        console.log("Chart Canvas nicht gefunden");
+        return;
+    }
+    
+    const currentStats = getStats();
+    const weeklyData = currentStats.weeklyData || [0, 0, 0, 0, 0, 0, 0];
+    const maxValue = Math.max(...weeklyData, 1);
+    
+    if (statsChart) {
+        statsChart.destroy();
+    }
+    
     try {
-        const obj = JSON.parse(localStorage.getItem(LS_MG_BEST) || "{}");
-        return (typeof obj[level] === "number") ? obj[level] : null;
-    } catch {
-        return null;
-    }
-}
-
-function mgSetBest(level, sec) {
-    const obj = (() => {
-        try {
-            return JSON.parse(localStorage.getItem(LS_MG_BEST) || "{}");
-        } catch {
-            return {};
-        }
-    })();
-    obj[level] = sec;
-    localStorage.setItem(LS_MG_BEST, JSON.stringify(obj));
-}
-
-function mgRefreshBest() {
-    const best = mgGetBest(currentLevel);
-    mgBestEl.textContent = best == null ? "—" : mgFormatTime(best);
-}
-
-function calculateScore(time, moves, level) {
-    const timeBonus = Math.max(0, 5000 - (time * 50));
-    const moveBonus = Math.max(0, 3000 - (moves * 100));
-    const levelBonus = level * 1000;
-    return Math.round((timeBonus + moveBonus + levelBonus) / 100);
-}
-
-function showStreakMessage(streak) {
-    const messages = [
-        "Gut gemacht!",
-        "Super!",
-        "Fantastisch!",
-        "Unglaublich!",
-        "Legendär!"
-    ];
-
-    const message = streak <= messages.length ? messages[streak - 1] : "PERFEKT!";
-
-    const streakEl = document.createElement('div');
-    streakEl.style.position = 'fixed';
-    streakEl.style.top = '50%';
-    streakEl.style.left = '50%';
-    streakEl.style.transform = 'translate(-50%, -50%)';
-    streakEl.style.background = 'linear-gradient(135deg, #ffd93d, #ff6b6b)';
-    streakEl.style.color = 'white';
-    streakEl.style.padding = '20px 40px';
-    streakEl.style.borderRadius = '50px';
-    streakEl.style.fontSize = '2rem';
-    streakEl.style.fontWeight = '900';
-    streakEl.style.zIndex = '10000';
-    streakEl.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.3)';
-    streakEl.textContent = `${message} (${streak}x)`;
-
-    document.body.appendChild(streakEl);
-
-    // Animate streak message
-    const animation = streakEl.animate([
-        { transform: 'translate(-50%, -50%) scale(0)', opacity: 0 },
-        { transform: 'translate(-50%, -50%) scale(1.2)', opacity: 1 },
-        { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
-        { transform: 'translate(-50%, -50%) scale(0.8)', opacity: 0 }
-    ], {
-        duration: 1500,
-        easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
-    });
-
-    animation.onfinish = () => {
-        streakEl.remove();
-    };
-}
-
-// ========= HELPER FUNCTIONS =========
-function loadVocabs() {
-    try {
-        const saved = localStorage.getItem(LS_VOCABS);
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            // 如果没有已保存的单词，返回一些示例数据
-            if (parsed.length > 0) {
-                return parsed;
-            }
-        }
-        // 返回一些示例单词供测试
-        return [
-            { id: "1", q: "Haus", a: "house" },
-            { id: "2", q: "Auto", a: "car" },
-            { id: "3", q: "Hund", a: "dog" },
-            { id: "4", q: "Katze", a: "cat" },
-            { id: "5", q: "Buch", a: "book" },
-            { id: "6", q: "Stuhl", a: "chair" },
-            { id: "7", q: "Tisch", a: "table" },
-            { id: "8", q: "Fenster", a: "window" },
-            { id: "9", q: "Tür", a: "door" },
-            { id: "10", q: "Wasser", a: "water" }
-        ];
-    } catch {
-        return [];
-    }
-}
-
-function randomId() {
-    return crypto?.randomUUID?.() || `id_${Math.random().toString(16).slice(2)}_${Date.now()}`;
-}
-
-function escapeHtml(str) {
-    return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-// ========= INITIALIZATION =========
-document.addEventListener("DOMContentLoaded", function () {
-    // Set default active level button
-    const defaultLevelBtn = document.querySelector('.level-btn-modern[data-level="8"]');
-    if (defaultLevelBtn) {
-        defaultLevelBtn.classList.add("active");
-    }
-
-    // Initial best score display
-    mgRefreshBest();
-
-    // Add click sound effects (optional)
-    const buttons = document.querySelectorAll('button:not(.no-sound)');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Simple click sound simulation
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
+        const ctx = statsChartCanvas.getContext('2d');
+        
+        statsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+                datasets: [{
+                    label: 'Gelernte Vokabeln',
+                    data: weeklyData,
+                    borderColor: '#2dd4bf',
+                    backgroundColor: 'rgba(45, 212, 191, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#2dd4bf',
+                    pointBorderColor: 'white',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: maxValue + 1,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            stepSize: 1,
+                            callback: function(value) {
+                                if (Number.isInteger(value)) {
+                                    return value;
+                                }
+                                return null;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    }
                 }
-                
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.1);
-            } catch (e) {
-                // Audio not supported, ignore
             }
         });
-    });
+        
+        console.log("Chart aktualisiert:", weeklyData);
+    } catch (e) {
+        console.log("Chart Fehler:", e);
+    }
+}
+
+// ========= RESET STATS FUNKTION =========
+function resetStats() {
+    if (confirm("Alle Statistiken zurücksetzen?")) {
+        const newStats = {
+            gamesPlayed: 0,
+            gamesWon: 0,
+            totalMoves: 0,
+            totalTime: 0,
+            learnedVocabs: [],
+            dailyGoal: 10,
+            dailyProgress: 0,
+            lastPlayed: new Date().toDateString(),
+            streak: 0,
+            bestStreak: 0,
+            challenges: {
+                novice: 0,
+                expert: 0,
+                master: 0
+            },
+            weeklyData: [0, 0, 0, 0, 0, 0, 0]
+        };
+        saveStats(newStats);
+        console.log("Statistiken zurückgesetzt!");
+    }
+}
+
+// ========= TEST FUNKTION =========
+function testStats() {
+    console.log("🧪 Testdaten werden geladen...");
+    const currentStats = getStats();
+    currentStats.gamesPlayed = 5;
+    currentStats.gamesWon = 4;
+    currentStats.dailyProgress = 3;
+    currentStats.weeklyData = [2, 3, 1, 4, 2, 3, 1];
+    currentStats.challenges = { novice: 3, expert: 1, master: 0 };
+    currentStats.streak = 2;
+    currentStats.bestStreak = 3;
+    saveStats(currentStats);
+    console.log("✅ Testdaten geladen!");
+}
+
+// ========= INIT =========
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("DOM geladen - Initialisiere Lernplattform");
+    
+    let alleVokabeln = getVocabs();
+    
+    if (alleVokabeln.length === 0) {
+        alleVokabeln = [
+            { id: "l1", q: "Hund", a: "dog", category: "Tiere", difficulty: 1, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "l2", q: "Katze", a: "cat", category: "Tiere", difficulty: 1, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "l3", q: "Haus", a: "house", category: "Wohnen", difficulty: 1, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "l4", q: "Auto", a: "car", category: "Verkehr", difficulty: 1, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "l5", q: "Buch", a: "book", category: "Schule", difficulty: 1, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "l6", q: "Tisch", a: "table", category: "Wohnen", difficulty: 1, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "m1", q: "verstehen", a: "to understand", category: "Verben", difficulty: 2, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "m2", q: "erinnern", a: "to remember", category: "Verben", difficulty: 2, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "m3", q: "vergessen", a: "to forget", category: "Verben", difficulty: 2, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "m4", q: "glauben", a: "to believe", category: "Verben", difficulty: 2, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "m5", q: "hoffen", a: "to hope", category: "Verben", difficulty: 2, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "m6", q: "warten", a: "to wait", category: "Verben", difficulty: 2, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "m7", q: "brauchen", a: "to need", category: "Verben", difficulty: 2, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "m8", q: "kaufen", a: "to buy", category: "Verben", difficulty: 2, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s1", q: "beeindrucken", a: "to impress", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s2", q: "unterstützen", a: "to support", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s3", q: "widersprechen", a: "to contradict", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s4", q: "verhandeln", a: "to negotiate", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s5", q: "überzeugen", a: "to convince", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s6", q: "beschließen", a: "to decide", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s7", q: "vermeiden", a: "to avoid", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s8", q: "erlauben", a: "to allow", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s9", q: "verbieten", a: "to forbid", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 },
+            { id: "s10", q: "empfehlen", a: "to recommend", category: "Fortgeschritten", difficulty: 3, box: 1, faellig: true, learned: false, timesCorrect: 0, timesWrong: 0 }
+        ];
+        
+        saveVocabs(alleVokabeln);
+    }
+    
+    const initialStats = getStats();
+    if (!initialStats.lastPlayed) {
+        initialStats.lastPlayed = new Date().toDateString();
+        initialStats.dailyProgress = 0;
+        initialStats.streak = 0;
+        initialStats.bestStreak = 0;
+        initialStats.gamesPlayed = 0;
+        initialStats.gamesWon = 0;
+        initialStats.totalMoves = 0;
+        initialStats.totalTime = 0;
+        initialStats.weeklyData = [0, 0, 0, 0, 0, 0, 0];
+        initialStats.challenges = { novice: 0, expert: 0, master: 0 };
+        saveStats(initialStats);
+    }
+    
+    renderVocabList("");
+    updateStatsDisplay();
+    
+    setTimeout(() => {
+        updateChart();
+    }, 500);
+    
+    // يمكنك استخدام هاد الدوال في Console للتجربة:
+    window.testStats = testStats;
+    window.resetStats = resetStats;
+    
+    console.log("Lernplattform bereit!");
+    console.log("Zum Testen: testStats() oder resetStats() in der Console eingeben");
 });

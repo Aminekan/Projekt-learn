@@ -2,127 +2,240 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Master - Mini-Game</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Vokabeltrainer · Memory Elite</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js für Statistiken -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-wrapper">
-        <div class="game-header-modern">
-            <div class="game-title-modern">
-                <div class="badge-modern">
-                    <i class="fas fa-brain"></i>
-                    <span>MEMORY MASTER</span>
-                </div>
-                <p class="subtitle-modern">Finde die Wortpaare und schlage deine Bestzeit!</p>
+
+<div class="app-wrapper">
+    <div class="dashboard">
+
+        <!-- ========= LINKES PANEL – VOKABELTRAINER ========= -->
+        <div class="trainer-card">
+            <div class="trainer-header">
+                <h1><i class="fas fa-database"></i> Wortschatz</h1>
             </div>
-            
-            <div class="game-controls-modern">
-                <div class="level-selector">
-                    <div class="level-label">
-                        <i class="fas fa-layer-group"></i> Schwierigkeit
+
+            <div class="section">
+                <h2><i class="fas fa-plus-circle"></i> Vokabel anlegen</h2>
+                <input type="text" id="wordQ" class="input-glass" placeholder="Wort (z.B. Hund)">
+                <input type="text" id="wordA" class="input-glass" placeholder="Übersetzung (z.B. dog)">
+                <input type="text" id="wordCategory" class="input-glass" placeholder="Kategorie (z.B. Tiere, Verben...)">
+                
+                <div class="difficulty-panel">
+                    <div class="difficulty-row">
+                        <span><i class="fas fa-sliders-h"></i> Schwierigkeit</span>
+                        <select id="difficultySelect">
+                            <option>Leicht</option>
+                            <option selected>Mittel</option>
+                            <option>Schwer</option>
+                        </select>
                     </div>
-                    <div class="level-buttons-modern">
-                        <button class="level-btn-modern active" data-level="6">
-                            <i class="fas fa-seedling"></i>
-                            <span>Leicht</span>
-                            <small>6 Paare</small>
-                        </button>
-                        <button class="level-btn-modern" data-level="8">
-                            <i class="fas fa-bolt"></i>
-                            <span>Mittel</span>
-                            <small>8 Paare</small>
-                        </button>
-                        <button class="level-btn-modern" data-level="10">
-                            <i class="fas fa-fire"></i>
-                            <span>Schwer</span>
-                            <small>10 Paare</small>
-                        </button>
-                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="saveVocabBtn" class="btn-primary"><i class="fas fa-save"></i> Speichern</button>
+                    <button id="deleteAllBtn" class="btn-delete"><i class="fas fa-trash-alt"></i> Alles löschen</button>
+                </div>
+
+                <div class="hint-box">
+                    <i class="fas fa-cubes"></i>
+                    <span>Spaced Repetition: Box-System (1→2→3→4→5). Bei “richtig” später, bei “falsch” früher.</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-list-ul"></i> Deine Vokabeln</h2>
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" class="input-glass" placeholder="Suchen...">
                 </div>
                 
-                <button id="mgStart" class="btn-game-start">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Alle</button>
+                    <button class="filter-btn" data-filter="1">Leicht</button>
+                    <button class="filter-btn" data-filter="2">Mittel</button>
+                    <button class="filter-btn" data-filter="3">Schwer</button>
+                </div>
+
+                <div id="vocabListContainer" class="vocab-list-container"></div>
+                <div id="vocabCounter" class="vocab-counter">Angezeigt: 0 / Gesamt: 0</div>
+            </div>
+            
+            <div class="stats-mini">
+                <div class="stat-mini-item">
+                    <i class="fas fa-check-circle" style="color: #4ade80;"></i>
+                    <span id="learnedCount">0</span> gelernt
+                </div>
+                <div class="stat-mini-item">
+                    <i class="fas fa-clock" style="color: #fbbf24;"></i>
+                    <span id="totalTime">0</span> min
+                </div>
+                <!-- تم حذف عنصر "0 Tage" -->
+            </div>
+        </div>
+
+        <!-- ========= RECHTES PANEL – MEMORY MASTER ========= -->
+        <div class="memory-card-modern">
+            <div class="memory-badge">
+                <i class="fas fa-brain"></i>
+                <span>MEMORY ELITE</span>
+            </div>
+            <p class="memory-subtitle">Finde die Wortpaare und schlage deine Bestzeit!</p>
+            
+            <div class="difficulty-strip">
+                <div class="difficulty-strip-label">
+                    <i class="fas fa-layer-group"></i>
+                    <span>SCHWIERIGKEIT</span>
+                </div>
+                <div class="difficulty-tabs">
+                    <button class="tab-btn active" data-level="6">
+                        <i class="fas fa-seedling"></i>
+                        <span>Leicht</span>
+                        <small>6 Paare</small>
+                    </button>
+                    <button class="tab-btn" data-level="8">
+                        <i class="fas fa-bolt"></i>
+                        <span>Mittel</span>
+                        <small>8 Paare</small>
+                    </button>
+                    <button class="tab-btn" data-level="10">
+                        <i class="fas fa-fire"></i>
+                        <span>Schwer</span>
+                        <small>10 Paare</small>
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-bar">
+                <button id="memoryStartBtn" class="btn-ultra">
                     <i class="fas fa-play-circle"></i>
                     <span>SPIEL STARTEN</span>
                 </button>
-            </div>
-        </div>
-
-        <div class="game-stats-modern">
-            <div class="stat-modern">
-                <div class="stat-icon-modern time">
-                    <i class="fas fa-clock"></i>
+                <div class="best-chip">
+                    <span>🏆 BESTZEIT</span>
+                    <strong id="bestTimeDisplay">—</strong>
                 </div>
-                <div class="stat-content-modern">
-                    <span>ZEIT</span>
-                    <b id="mgTime" class="stat-value-modern">00:00</b>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-neo">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <span>ZEIT</span>
+                        <strong id="timerDisplay">00:00</strong>
+                    </div>
+                </div>
+                <div class="stat-neo">
+                    <div class="stat-icon"><i class="fas fa-sync-alt"></i></div>
+                    <div class="stat-info">
+                        <span>ZÜGE</span>
+                        <strong id="movesDisplay">0</strong>
+                    </div>
+                </div>
+                <div class="stat-neo">
+                    <div class="stat-icon"><i class="fas fa-star"></i></div>
+                    <div class="stat-info">
+                        <span>TREFFER</span>
+                        <strong id="matchesDisplay">0</strong>
+                        <span id="progressPercent" class="progress-percent">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gameInfo" class="game-message">
+                <i class="fas fa-lightbulb"></i>
+                <span>Wähle ein Level und starte das Spiel!</span>
+            </div>
+
+            <div class="progress-luxury">
+                <div id="progressBar" class="progress-fill"></div>
+            </div>
+
+            <div id="memoryBoard" class="board-grid"></div>
+            <div id="winMessage" class="win-luxury" style="display: none;"></div>
+            
+            <!-- ===== LERNMODULE ===== -->
+            <div class="learning-extras">
+                <div class="extra-tabs">
+                    <button class="extra-tab active" data-tab="stats">📊 Statistiken</button>
+                    <button class="extra-tab" data-tab="challenges">🏆 Herausforderungen</button>
+                    <button class="extra-tab" data-tab="daily">📅 Tägliche Ziele</button>
+                </div>
+                
+                <div class="extra-content active" id="statsTab">
+                    <canvas id="statsChart" width="400" height="200"></canvas>
+                    <div class="stats-summary">
+                        <div><span>Gesamt gelernt:</span> <strong id="totalLearned">0</strong></div>
+                        <div><span>Erfolgsquote:</span> <strong id="successRate">0%</strong></div>
+                        <div><span>Beste Serie:</span> <strong id="bestStreak">0</strong></div>
+                    </div>
+                </div>
+                
+                <div class="extra-content" id="challengesTab">
+                    <div class="challenge-item" data-challenge="novice">
+                        <i class="fas fa-medal"></i>
+                        <span>Anfänger</span>
+                        <small>10 Spiele</small>
+                        <div class="challenge-progress">
+                            <div class="challenge-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="challenge-count" id="challengeNovice">0/10</span>
+                    </div>
+                    <div class="challenge-item" data-challenge="expert">
+                        <i class="fas fa-crown"></i>
+                        <span>Experte</span>
+                        <small>50 Spiele</small>
+                        <div class="challenge-progress">
+                            <div class="challenge-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="challenge-count" id="challengeExpert">0/50</span>
+                    </div>
+                    <div class="challenge-item" data-challenge="master">
+                        <i class="fas fa-skull"></i>
+                        <span>Master</span>
+                        <small>100 Spiele</small>
+                        <div class="challenge-progress">
+                            <div class="challenge-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="challenge-count" id="challengeMaster">0/100</span>
+                    </div>
+                </div>
+                
+                <div class="extra-content" id="dailyTab">
+                    <div class="daily-goal">
+                        <i class="fas fa-bullseye"></i>
+                        <div>
+                            <h4>Tägliches Ziel</h4>
+                            <p>Lerne 10 Vokabeln heute</p>
+                        </div>
+                        <div class="daily-progress">
+                            <div class="daily-fill" id="dailyFill" style="width: 0%"></div>
+                        </div>
+                        <span id="dailyCount">0/10</span>
+                    </div>
                 </div>
             </div>
             
-            <div class="stat-modern">
-                <div class="stat-icon-modern moves">
-                    <i class="fas fa-sync-alt"></i>
-                </div>
-                <div class="stat-content-modern">
-                    <span>ZÜGE</span>
-                    <b id="mgMoves" class="stat-value-modern">0</b>
-                </div>
+            <div class="memory-footer">
+                <i class="fas fa-circle-info"></i>
+                <p><strong>Tipp:</strong> Je öfter du spielst, desto besser merkst du dir die Vokabeln!</p>
             </div>
-            
-            <div class="stat-modern">
-                <div class="stat-icon-modern matches">
-                    <i class="fas fa-star"></i>
-                </div>
-                <div class="stat-content-modern">
-                    <span>TREFFER</span>
-                    <b id="mgMatches" class="stat-value-modern">0</b>
-                </div>
-            </div>
-            
-            <div class="stat-modern">
-                <div class="stat-icon-modern best">
-                    <i class="fas fa-trophy"></i>
-                </div>
-                <div class="stat-content-modern">
-                    <span>BESTZEIT</span>
-                    <b id="mgBest" class="stat-value-modern">—</b>
-                </div>
-            </div>
-        </div>
-
-        <div class="progress-container-modern">
-            <div class="progress-bar-modern" id="mgProgress"></div>
-        </div>
-
-        <div id="mgInfo" class="game-info-modern">
-            <i class="fas fa-lightbulb"></i>
-            <span>Wähle ein Level und starte das Spiel!</span>
-        </div>
-
-        <div id="mgBoard" class="board-modern">
-        </div>
-
-        <div id="mgWin" class="win-box-modern" style="display:none;">
-            <div class="win-content">
-                <div class="win-icon">
-                    <i class="fas fa-trophy"></i>
-                </div>
-                <h2>HERZLICHEN GLÜCKWUNSCH!</h2>
-                <p id="mgWinText" class="win-text">—</p>
-                <button id="mgPlayAgain" class="btn-play-again">
-                    <i class="fas fa-redo"></i>
-                    <span>NOCHMAL SPIELEN</span>
-                </button>
-            </div>
-        </div>
-        
-        <div class="game-tips">
-            <i class="fas fa-lightbulb"></i>
-            <p><strong>Tipp:</strong> Merke dir die Positionen der Karten - jede Vokabel hat ein passendes Übersetzungs-Paar!</p>
         </div>
     </div>
+</div>
 
-    <script src="mini-game.js"></script>
+<!-- JavaScript -->
+<script src="script.js"></script>
 </body>
 </html>
