@@ -51,14 +51,6 @@ switch ($method) {
         echo json_encode(['success' => true]);
         break;
 
-    case 'DELETE':
-        // Task löschen (optional)
-        $id = $_GET['id'];
-        $stmt = $pdo->prepare('DELETE FROM tasks WHERE id = ?');
-        $stmt->execute([$id]);
-        echo json_encode(['success' => true]);
-        break;
-
     default:
         echo json_encode(['error' => 'Ungültige Methode']);
         break;
