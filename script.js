@@ -484,7 +484,6 @@ function checkWin() {
         
         gameInfo.innerHTML = `<i class="fas fa-check-circle"></i><span>Spiel beendet! Du hast gewonnen! 🎉</span>`;
         
-        // تحديث الإحصائيات
         updateStatsAfterWin();
     }
 }
@@ -495,7 +494,6 @@ function updateStatsAfterWin() {
     const currentStats = getStats();
     console.log("Aktuelle Stats vor Update:", currentStats);
     
-    // زيادة عدد الألعاب
     currentStats.gamesPlayed = (currentStats.gamesPlayed || 0) + 1;
     currentStats.gamesWon = (currentStats.gamesWon || 0) + 1;
     currentStats.totalMoves = (currentStats.totalMoves || 0) + moves;
@@ -506,10 +504,8 @@ function updateStatsAfterWin() {
         gamesWon: currentStats.gamesWon
     });
     
-    // زيادة التقدم اليومي
     currentStats.dailyProgress = (currentStats.dailyProgress || 0) + 1;
     
-    // تحديث بيانات الأسبوع
     const today = new Date().getDay();
     const dayIndex = today === 0 ? 6 : today - 1;
     
@@ -518,7 +514,6 @@ function updateStatsAfterWin() {
     }
     currentStats.weeklyData[dayIndex] = (currentStats.weeklyData[dayIndex] || 0) + 1;
     
-    // تحديث التحديات
     if (!currentStats.challenges) {
         currentStats.challenges = { novice: 0, expert: 0, master: 0 };
     }
@@ -526,7 +521,6 @@ function updateStatsAfterWin() {
     currentStats.challenges.expert = (currentStats.challenges.expert || 0) + 1;
     currentStats.challenges.master = (currentStats.challenges.master || 0) + 1;
     
-    // تحديث streak
     const todayStr = new Date().toDateString();
     if (currentStats.lastPlayed !== todayStr) {
         const yesterday = new Date();
@@ -547,10 +541,8 @@ function updateStatsAfterWin() {
     
     console.log("Stats nach Update (vor save):", currentStats);
     
-    // حفظ الإحصائيات
     saveStats(currentStats);
     
-    // تحديث العرض
     renderVocabList(searchInput.value);
     
     console.log("✅ Statistiken gespeichert!");
@@ -574,7 +566,6 @@ function updateStatsDisplay() {
     if (dailyStreak) dailyStreak.textContent = currentStats.streak || 0;
     if (bestStreak) bestStreak.textContent = currentStats.bestStreak || 0;
     
-    // حساب نسبة النجاح
     const gamesPlayed = currentStats.gamesPlayed || 0;
     const gamesWon = currentStats.gamesWon || 0;
     const rate = gamesPlayed > 0 ? Math.round((gamesWon / gamesPlayed) * 100) : 0;
@@ -794,7 +785,6 @@ document.addEventListener("DOMContentLoaded", function() {
         updateChart();
     }, 500);
     
-    // يمكنك استخدام هاد الدوال في Console للتجربة:
     window.testStats = testStats;
     window.resetStats = resetStats;
     
